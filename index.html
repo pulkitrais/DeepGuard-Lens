@@ -353,36 +353,62 @@
                 });
             };
 
-            const handleGoogleLens = () => {
-                if (!file) return;
+            const handleGoogleLens = async () => {
+                // If there's no file, nothing to upload
+                if (!file && !imageSrc) return;
 
-                // Try to post file to Google "search by image" endpoint by building a form with input.files via DataTransfer
                 try {
+                    // Open a named window first so the form can target it reliably
+                    const winName = 'lensUploadWindow';
+                    window.open('about:blank', winName);
+
+                    // Build a form that POSTS to Google's search by image upload endpoint
                     const form = document.createElement('form');
                     form.action = 'https://www.google.com/searchbyimage/upload';
                     form.method = 'POST';
                     form.enctype = 'multipart/form-data';
-                    form.target = '_blank';
+                    form.target = winName;
                     form.style.display = 'none';
 
+                    // File input
                     const fileInput = document.createElement('input');
                     fileInput.type = 'file';
                     fileInput.name = 'encoded_image';
                     fileInput.accept = 'image/*';
 
+                    // Populate input.files using DataTransfer (works when run in user gesture)
                     const dataTransfer = new DataTransfer();
-                    dataTransfer.items.add(file);
+                    // If we have a File object, use it. Otherwise try to convert data URL to File.
+                    if (file instanceof File) {
+                        dataTransfer.items.add(file);
+                    } else if (imageSrc && imageSrc.startsWith('data:')) {
+                        // Convert data URL to File
+                        const res = await fetch(imageSrc);
+                        const blob = await res.blob();
+                        const f = new File([blob], 'upload.png', { type: blob.type || 'image/png' });
+                        dataTransfer.items.add(f);
+                    }
                     fileInput.files = dataTransfer.files;
 
+                    // Hidden empty image_url field (Google expects either file or URL)
+                    const urlInput = document.createElement('input');
+                    urlInput.type = 'hidden';
+                    urlInput.name = 'image_url';
+                    urlInput.value = '';
+
                     form.appendChild(fileInput);
+                    form.appendChild(urlInput);
                     document.body.appendChild(form);
+
+                    // Submit the form to open results in the new tab/window
                     form.submit();
 
+                    // Clean up shortly after submit
                     setTimeout(() => {
                         try { document.body.removeChild(form); } catch (e) {}
-                    }, 2000);
+                    }, 3000);
                 } catch (e) {
-                    // fallback: open Lens upload
+                    // If anything fails (browser restrictions / CORS), fallback to Lens upload page
                     window.open('https://lens.google.com/upload', '_blank');
                 }
             };
@@ -429,13 +455,13 @@
                                             <div className="flex gap-2">
                                                 <button
                                                     onClick={() => setShowEla(false)}
-                                                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${!showEla ? 'bg-cyan-600 text-white' : 'bg-slate-800 text-slate-400 hover:text-cyan-400'}`}
+                                                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${!showEla ? 'bg-cyan-600 text-white' : 'bg-slate-800 text-slate-400 hover:bg-slate-700'}`}
                                                 >
                                                     Original
                                                 </button>
                                                 <button
                                                     onClick={() => setShowEla(true)}
-                                                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 ${showEla ? 'bg-indigo-600 text-white' : 'bg-slate-800 text-slate-400 hover:text-indigo-400'}`}
+                                                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 ${showEla ? 'bg-indigo-600 text-white' : 'bg-slate-800 text-slate-400 hover:bg-slate-700'}`}
                                                 >
                                                     <Icons.Activity className="w-4 h-4" /> ELA Layer
                                                 </button>
@@ -555,7 +581,7 @@
                                                         <h4 className="text-sm font-bold text-white">Variance Scoring</h4>
                                                     </div>
                                                     <p className="text-xs text-slate-400 leading-relaxed">
-                                                        We calculate the mathematical variance of the pixel differences across the ELA map. High localized variance (spikes in noise) usually indicates tampering.
+                                                        We calculate the mathematical variance of the pixel differences across the ELA map. High localized variance (spikes in noise) usually indicate manipulation.
                                                     </p>
                                                 </div>
 
