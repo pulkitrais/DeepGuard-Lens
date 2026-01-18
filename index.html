@@ -1,17 +1,17 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>DeepGuard - Deepfake Detection</title>
-    
+
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    
+
     <!-- React & ReactDOM -->
     <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
-    
+
     <!-- Babel (for JSX) -->
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
@@ -45,28 +45,110 @@
     <script type="text/babel">
         const { useState, useRef, useEffect } = React;
 
-        // --- ICONS (Inline SVGs to avoid dependency issues) ---
-        const Icon = ({ path, className }) => (
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-                {path}
+        // Simple Icon wrapper that accepts children (SVG path elements) and props
+        const Icon = ({ children, className = '', width = 24, height = 24, viewBox = '0 0 24 24', ...rest }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={width} height={height} viewBox={viewBox} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} {...rest}>
+                {children}
             </svg>
         );
 
+        // A compact set of icons used in the page (based on Feather-like shapes)
         const Icons = {
-            ShieldCheck: (props) => <Icon {...props} path={<><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10" /><path d="m9 12 2 2 4-4" /></>} />,
-            ShieldAlert: (props) => <Icon {...props} path={<><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10" /><path d="M12 8v4" /><path d="M12 16h.01" /></>} />,
-            Upload: (props) => <Icon {...props} path={<><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></>} />,
-            Scan: (props) => <Icon {...props} path={<><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/></>} />,
-            Activity: (props) => <Icon {...props} path={<path d="M22 12h-4l-3 9L9 3l-3 9H2" />} />,
-            FileSearch: (props) => <Icon {...props} path={<><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M4 7V5a2 2 0 0 1 2-2h6.9L19.4 9.4A2 2 0 0 1 20 11v9.6a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-3"/><circle cx="10" cy="14" r="3"/><path d="m14 18-1.9-1.9"/></>} />,
-            Eye: (props) => <Icon {...props} path={<><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></>} />,
-            AlertTriangle: (props) => <Icon {...props} path={<><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></>} />,
-            CheckCircle: (props) => <Icon {...props} path={<><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></>} />,
-            ExternalLink: (props) => <Icon {...props} path={<><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" x2="21" y1="14" y2="3"/></>} />,
-            Cpu: (props) => <Icon {...props} path={<><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><path d="M15 2v2"/><path d="M15 20v2"/><path d="M2 15h2"/><path d="M2 9h2"/><path d="M20 15h2"/><path d="M20 9h2"/><path d="M9 2v2"/><path d="M9 20v2"/></>} />,
-            Lock: (props) => <Icon {...props} path={<><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></>} />,
-            Search: (props) => <Icon {...props} path={<><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></>} />,
-            X: (props) => <Icon {...props} path={<><path d="M18 6 6 18"/><path d="m6 6 12 12"/></>} />
+            ShieldCheck: (props) => (
+                <Icon {...props}>
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10" />
+                    <path d="m9 12 2 2 4-4" />
+                </Icon>
+            ),
+            ShieldAlert: (props) => (
+                <Icon {...props}>
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10" />
+                    <path d="M12 8v4" />
+                    <path d="M12 16h.01" />
+                </Icon>
+            ),
+            Upload: (props) => (
+                <Icon {...props}>
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                    <polyline points="17 8 12 3 7 8" />
+                    <line x1="12" x2="12" y1="3" y2="15" />
+                </Icon>
+            ),
+            Scan: (props) => (
+                <Icon {...props}>
+                    <path d="M3 7V5a2 2 0 0 1 2-2h2" />
+                    <path d="M17 3h2a2 2 0 0 1 2 2v2" />
+                    <path d="M21 17v2a2 2 0 0 1-2 2h-2" />
+                    <path d="M7 21H5a2 2 0 0 1-2-2v-2" />
+                </Icon>
+            ),
+            Activity: (props) => (
+                <Icon {...props}>
+                    <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
+                </Icon>
+            ),
+            FileSearch: (props) => (
+                <Icon {...props}>
+                    <path d="M14 2v4a2 2 0 0 0 2 2h4" />
+                    <path d="M4 7V5a2 2 0 0 1 2-2h6.9" />
+                    <circle cx="16" cy="16" r="3" />
+                    <path d="M18.4 18.4L21 21" />
+                </Icon>
+            ),
+            Eye: (props) => (
+                <Icon {...props}>
+                    <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
+                    <circle cx="12" cy="12" r="3" />
+                </Icon>
+            ),
+            AlertTriangle: (props) => (
+                <Icon {...props}>
+                    <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" />
+                    <path d="M12 9v4" />
+                    <path d="M12 17h.01" />
+                </Icon>
+            ),
+            CheckCircle: (props) => (
+                <Icon {...props}>
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                    <polyline points="22 4 12 14.01 9 11.01" />
+                </Icon>
+            ),
+            ExternalLink: (props) => (
+                <Icon {...props}>
+                    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+                    <polyline points="15 3 21 3 21 9" />
+                    <line x1="10" x2="21" y1="14" y2="3" />
+                </Icon>
+            ),
+            Cpu: (props) => (
+                <Icon {...props}>
+                    <rect x="4" y="4" width="16" height="16" rx="2" />
+                    <rect x="9" y="9" width="6" height="6" />
+                    <path d="M15 2v2" />
+                    <path d="M15 20v2" />
+                    <path d="M2 15h2" />
+                    <path d="M20 15h2" />
+                </Icon>
+            ),
+            Lock: (props) => (
+                <Icon {...props}>
+                    <rect x="3" y="11" width="18" height="11" rx="2" />
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                </Icon>
+            ),
+            Search: (props) => (
+                <Icon {...props}>
+                    <circle cx="11" cy="11" r="8" />
+                    <path d="m21 21-4.3-4.3" />
+                </Icon>
+            ),
+            X: (props) => (
+                <Icon {...props}>
+                    <path d="M18 6 6 18" />
+                    <path d="m6 6 12 12" />
+                </Icon>
+            ),
         };
 
         // --- COMPONENTS ---
@@ -107,6 +189,7 @@
 
             useEffect(() => {
                 if (!imageSrc) return;
+                setIsProcessing(true);
 
                 const img = new Image();
                 img.crossOrigin = "Anonymous";
@@ -115,53 +198,71 @@
                 img.onload = () => {
                     const canvas = canvasRef.current;
                     const ctx = canvas.getContext('2d');
-                    
-                    const scale = Math.min(1, 800 / img.width);
-                    canvas.width = img.width * scale;
-                    canvas.height = img.height * scale;
+
+                    // scale down large images for performance but keep aspect
+                    const maxWidth = 800;
+                    const scale = Math.min(1, maxWidth / img.width);
+                    canvas.width = Math.round(img.width * scale);
+                    canvas.height = Math.round(img.height * scale);
 
                     ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
                     const originalData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-                    
+
                     const quality = 0.6;
                     const compressedUri = canvas.toDataURL('image/jpeg', quality);
-                    
+
                     const compressedImg = new Image();
+                    compressedImg.crossOrigin = "Anonymous";
                     compressedImg.src = compressedUri;
-                    
+
                     compressedImg.onload = () => {
                         const tempCanvas = document.createElement('canvas');
                         tempCanvas.width = canvas.width;
                         tempCanvas.height = canvas.height;
                         const tempCtx = tempCanvas.getContext('2d');
                         tempCtx.drawImage(compressedImg, 0, 0, canvas.width, canvas.height);
-                        
+
                         const compressedData = tempCtx.getImageData(0, 0, canvas.width, canvas.height);
                         const output = ctx.createImageData(canvas.width, canvas.height);
-                        
+
                         let totalDiff = 0;
 
                         for (let i = 0; i < originalData.data.length; i += 4) {
                             const rDiff = Math.abs(originalData.data[i] - compressedData.data[i]);
                             const gDiff = Math.abs(originalData.data[i+1] - compressedData.data[i+1]);
                             const bDiff = Math.abs(originalData.data[i+2] - compressedData.data[i+2]);
-                            
-                            const amplification = 20; 
+
+                            const amplification = 20;
                             const avgDiff = (rDiff + gDiff + bDiff) / 3;
                             totalDiff += avgDiff;
 
-                            output.data[i] = rDiff * amplification;
-                            output.data[i+1] = gDiff * amplification;
-                            output.data[i+2] = bDiff * amplification;
-                            output.data[i+3] = 255; 
+                            output.data[i] = Math.min(255, rDiff * amplification);
+                            output.data[i+1] = Math.min(255, gDiff * amplification);
+                            output.data[i+2] = Math.min(255, bDiff * amplification);
+                            output.data[i+3] = 255;
                         }
-                        
+
                         ctx.putImageData(output, 0, 0);
                         setIsProcessing(false);
-                        
-                        const score = Math.min(98, Math.max(12, (totalDiff / (canvas.width * canvas.height)) * 5));
-                        onAnalysisComplete(score);
+
+                        // produce a normalized score roughly in 0-100
+                        const avgDiffPerPixel = totalDiff / (canvas.width * canvas.height || 1);
+                        const rawScore = avgDiffPerPixel * 5; // tuned scalar
+                        const score = Math.round(Math.max(0, Math.min(100, rawScore)));
+                        if (typeof onAnalysisComplete === 'function') {
+                            onAnalysisComplete(score);
+                        }
                     };
+
+                    compressedImg.onerror = () => {
+                        setIsProcessing(false);
+                        if (typeof onAnalysisComplete === 'function') onAnalysisComplete(0);
+                    };
+                };
+
+                img.onerror = () => {
+                    setIsProcessing(false);
+                    if (typeof onAnalysisComplete === 'function') onAnalysisComplete(0);
                 };
             }, [imageSrc, onAnalysisComplete]);
 
@@ -196,14 +297,16 @@
 
             const handleDrop = (e) => {
                 e.preventDefault();
-                const droppedFile = e.dataTransfer.files[0];
-                if (droppedFile && droppedFile.type.startsWith('image/')) {
-                    processFile(droppedFile);
+                if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+                    const droppedFile = e.dataTransfer.files[0];
+                    if (droppedFile && droppedFile.type && droppedFile.type.startsWith('image/')) {
+                        processFile(droppedFile);
+                    }
                 }
             };
 
             const handleFileSelect = (e) => {
-                const selectedFile = e.target.files[0];
+                const selectedFile = e.target.files && e.target.files[0];
                 if (selectedFile) {
                     processFile(selectedFile);
                 }
@@ -214,11 +317,11 @@
                 const reader = new FileReader();
                 reader.onload = (e) => setImageSrc(e.target.result);
                 reader.readAsDataURL(selectedFile);
-                
+
                 setResult(null);
                 setProgress(0);
                 setIsAnalyzing(true);
-                
+
                 let p = 0;
                 const interval = setInterval(() => {
                     p += Math.random() * 15;
@@ -235,13 +338,13 @@
 
             const finishAnalysis = (file) => {
                 setIsAnalyzing(false);
-                
-                // Logic for "Suspicion" based on ELA score calculated in child component
-                const isSuspicious = elaScore > 45 || file.size < 50000; 
-                
+
+                // Use elaScore computed by ELAViewer where possible, otherwise fallback
+                const isSuspicious = (elaScore > 45) || (file.size < 50000);
+
                 setResult({
                     fileName: file.name,
-                    fileType: file.type,
+                    fileType: file.type || 'unknown',
                     fileSize: (file.size / 1024).toFixed(2) + ' KB',
                     isSuspicious: isSuspicious,
                     confidence: isSuspicious ? (85 + Math.random() * 14).toFixed(1) : (92 + Math.random() * 7).toFixed(1),
@@ -253,32 +356,33 @@
             const handleGoogleLens = () => {
                 if (!file) return;
 
-                const form = document.createElement('form');
-                form.action = 'https://google.com/searchbyimage/upload';
-                form.method = 'POST';
-                form.enctype = 'multipart/form-data';
-                form.target = '_blank';
-                form.style.display = 'none';
-
-                const fileInput = document.createElement('input');
-                fileInput.type = 'file';
-                fileInput.name = 'encoded_image';
-
+                // Try to post file to Google "search by image" endpoint by building a form with input.files via DataTransfer
                 try {
+                    const form = document.createElement('form');
+                    form.action = 'https://www.google.com/searchbyimage/upload';
+                    form.method = 'POST';
+                    form.enctype = 'multipart/form-data';
+                    form.target = '_blank';
+                    form.style.display = 'none';
+
+                    const fileInput = document.createElement('input');
+                    fileInput.type = 'file';
+                    fileInput.name = 'encoded_image';
+                    fileInput.accept = 'image/*';
+
                     const dataTransfer = new DataTransfer();
                     dataTransfer.items.add(file);
                     fileInput.files = dataTransfer.files;
 
                     form.appendChild(fileInput);
                     document.body.appendChild(form);
-                    
                     form.submit();
-                    
+
                     setTimeout(() => {
-                        document.body.removeChild(form);
+                        try { document.body.removeChild(form); } catch (e) {}
                     }, 2000);
                 } catch (e) {
-                    console.error("Direct upload failed", e);
+                    // fallback: open Lens upload
                     window.open('https://lens.google.com/upload', '_blank');
                 }
             };
@@ -288,30 +392,27 @@
                     <Navbar />
 
                     <main className="container mx-auto p-4 md:p-8 max-w-7xl">
-                        
                         <div className="mb-10 text-center">
                             <h2 className="text-3xl md:text-5xl font-bold text-white mb-4 bg-gradient-to-r from-cyan-400 to-blue-600 bg-clip-text text-transparent">
                                 Analyze. Detect. Verify.
                             </h2>
                             <p className="text-slate-400 max-w-2xl mx-auto text-lg">
-                                Advanced forensic analysis tool for detecting digital manipulation. 
+                                Advanced forensic analysis tool for detecting digital manipulation.
                                 Upload an image to perform Error Level Analysis (ELA).
                             </p>
                         </div>
 
                         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-                            
                             <div className="lg:col-span-7 space-y-6">
-                                
                                 {!imageSrc ? (
-                                    <div 
-                                        className="border-2 border-dashed border-slate-700 hover:border-cyan-500 bg-slate-900/50 rounded-2xl h-96 flex flex-col items-center justify-center cursor-pointer transition-all group"
+                                    <div
+                                        className="border-2 border-dashed border-slate-700 hover:border-cyan-500 bg-slate-900/50 rounded-2xl h-96 flex flex-col items-center justify-center cursor-pointer"
                                         onDragOver={(e) => e.preventDefault()}
                                         onDrop={handleDrop}
-                                        onClick={() => document.getElementById('fileInput').click()}
+                                        onClick={() => document.getElementById('fileInput') && document.getElementById('fileInput').click()}
                                     >
                                         <input type="file" id="fileInput" className="hidden" accept="image/*" onChange={handleFileSelect} />
-                                        <div className="w-20 h-20 bg-slate-800 rounded-full flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                                        <div className="w-20 h-20 bg-slate-800 rounded-full flex items-center justify-center mb-6 transition-transform">
                                             <Icons.Upload className="w-10 h-10 text-cyan-400" />
                                         </div>
                                         <h3 className="text-xl font-bold text-white mb-2">Drop Image for Analysis</h3>
@@ -326,22 +427,27 @@
                                     <div className="space-y-4">
                                         <div className="flex justify-between items-center mb-2">
                                             <div className="flex gap-2">
-                                                <button 
+                                                <button
                                                     onClick={() => setShowEla(false)}
-                                                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${!showEla ? 'bg-cyan-600 text-white' : 'bg-slate-800 text-slate-400 hover:text-white'}`}
+                                                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${!showEla ? 'bg-cyan-600 text-white' : 'bg-slate-800 text-slate-400 hover:text-cyan-400'}`}
                                                 >
                                                     Original
                                                 </button>
-                                                <button 
+                                                <button
                                                     onClick={() => setShowEla(true)}
-                                                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 ${showEla ? 'bg-indigo-600 text-white' : 'bg-slate-800 text-slate-400 hover:text-white'}`}
+                                                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 ${showEla ? 'bg-indigo-600 text-white' : 'bg-slate-800 text-slate-400 hover:text-indigo-400'}`}
                                                 >
                                                     <Icons.Activity className="w-4 h-4" /> ELA Layer
                                                 </button>
                                             </div>
-                                            <button onClick={() => {setImageSrc(null); setFile(null);}} className="text-slate-400 hover:text-rose-400">
-                                                <Icons.X className="w-6 h-6" />
-                                            </button>
+                                            <div className="flex items-center gap-3">
+                                                <button onClick={handleGoogleLens} className="px-3 py-2 rounded-lg text-sm bg-slate-800 text-slate-300 hover:bg-slate-700">
+                                                    <Icons.ExternalLink className="w-4 h-4 inline-block mr-2" /> Google Lens
+                                                </button>
+                                                <button onClick={() => { setImageSrc(null); setFile(null); setResult(null); setElaScore(0); }} className="text-slate-400 hover:text-rose-400">
+                                                    <Icons.X className="w-6 h-6" />
+                                                </button>
+                                            </div>
                                         </div>
 
                                         <div className="relative rounded-2xl overflow-hidden border border-slate-700 bg-slate-900 shadow-2xl min-h-[400px]">
@@ -351,17 +457,17 @@
                                                         <div className="h-full bg-cyan-500 transition-all duration-300 ease-out" style={{width: `${progress}%`}}></div>
                                                     </div>
                                                     <p className="text-cyan-400 font-mono animate-pulse">
-                                                        {progress < 30 ? 'EXTRACTING METADATA...' : 
-                                                         progress < 60 ? 'GENERATING ELA HEATMAP...' : 
+                                                        {progress < 30 ? 'EXTRACTING METADATA...' :
+                                                         progress < 60 ? 'GENERATING ELA HEATMAP...' :
                                                          progress < 90 ? 'RUNNING AI MODELS...' : 'FINALIZING REPORT...'}
                                                     </p>
                                                 </div>
                                             )}
-                                            
+
                                             <div className={showEla ? 'hidden' : 'block h-full'}>
                                                 <img src={imageSrc} alt="Analysis Target" className="w-full h-full object-contain max-h-[600px]" />
                                             </div>
-                                            
+
                                             <div className={showEla ? 'block h-full' : 'hidden'}>
                                                 <ELAViewer imageSrc={imageSrc} onAnalysisComplete={setElaScore} />
                                             </div>
@@ -370,8 +476,9 @@
                                         <div className="bg-slate-800/50 p-4 rounded-lg border border-slate-700 text-sm text-slate-400 flex items-start gap-3">
                                             <Icons.AlertTriangle className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
                                             <p>
-                                                <strong>What is ELA?</strong> Error Level Analysis identifies areas within an image that are at different compression levels. 
-                                                With JPEG images, the entire picture should be at roughly the same level. If a section of the image is at a significantly different error level, it likely indicates a digital modification.
+                                                <strong>What is ELA?</strong> Error Level Analysis identifies areas within an image that are at different compression levels.
+                                                With JPEG images, the entire picture should be at roughly the same level. If a section of the image is at a significantly different error level,
+                                                it likely indicates manipulation or re-saving of only a portion of the image.
                                             </p>
                                         </div>
                                     </div>
@@ -379,13 +486,12 @@
                             </div>
 
                             <div className="lg:col-span-5 space-y-6">
-                                
                                 {result ? (
                                     <div className="space-y-6 animate-in slide-in-from-right duration-500">
                                         <div className={`p-6 rounded-2xl border-2 ${result.isSuspicious ? 'bg-rose-950/20 border-rose-500/50' : 'bg-emerald-950/20 border-emerald-500/50'}`}>
                                             <div className="flex items-center gap-3 mb-4">
-                                                {result.isSuspicious ? 
-                                                    <Icons.ShieldAlert className="w-10 h-10 text-rose-500" /> : 
+                                                {result.isSuspicious ?
+                                                    <Icons.ShieldAlert className="w-10 h-10 text-rose-500" /> :
                                                     <Icons.CheckCircle className="w-10 h-10 text-emerald-500" />
                                                 }
                                                 <div>
@@ -409,17 +515,17 @@
                                         </div>
 
                                         <div className="grid grid-cols-2 gap-4">
-                                            <AnalysisCard 
-                                                title="ELA Variance" 
-                                                icon={Icons.Activity} 
-                                                value={`${Math.floor(elaScore)}/100`} 
+                                            <AnalysisCard
+                                                title="ELA Variance"
+                                                icon={Icons.Activity}
+                                                value={`${Math.floor(elaScore)}/100`}
                                                 status={elaScore > 40 ? 'warning' : 'safe'}
                                                 desc="Compression artifacts"
                                             />
-                                            <AnalysisCard 
-                                                title="File Structure" 
-                                                icon={Icons.FileSearch} 
-                                                value="Valid" 
+                                            <AnalysisCard
+                                                title="File Structure"
+                                                icon={Icons.FileSearch}
+                                                value="Valid"
                                                 status="safe"
                                                 desc={result.fileType}
                                             />
@@ -430,7 +536,7 @@
                                                 <Icons.Cpu className="text-cyan-400 w-6 h-6" />
                                                 <h3 className="text-lg font-semibold text-white">Algorithm Methodology</h3>
                                             </div>
-                                            
+
                                             <div className="space-y-4">
                                                 <div className="bg-slate-950/50 p-4 rounded-lg border border-slate-800">
                                                     <div className="flex items-center gap-2 mb-2">
@@ -438,7 +544,8 @@
                                                         <h4 className="text-sm font-bold text-white">Error Level Analysis (ELA)</h4>
                                                     </div>
                                                     <p className="text-xs text-slate-400 leading-relaxed">
-                                                        The system resaves the image at a known error rate (usually 60-75% quality). By subtracting this new image from the original, we isolate "compression noise". Authentic JPEG images have uniform noise. If a face or object was pasted in, it will often have a different compression level, appearing as a bright or discolored patch in the ELA layer.
+                                                        The system resaves the image at a known error rate (usually 60-75% quality). By subtracting this new image from the original, we isolate compression differences.
+                                                        Areas that differ significantly may indicate selective editing or recompression.
                                                     </p>
                                                 </div>
 
@@ -448,13 +555,15 @@
                                                         <h4 className="text-sm font-bold text-white">Variance Scoring</h4>
                                                     </div>
                                                     <p className="text-xs text-slate-400 leading-relaxed">
-                                                        We calculate the mathematical variance of the pixel differences across the ELA map. High localized variance (spikes in noise) usually indicates foreign pixel data that doesn't match the image's global compression signature. A score above 45 triggers a warning.
+                                                        We calculate the mathematical variance of the pixel differences across the ELA map. High localized variance (spikes in noise) usually indicates tampering.
                                                     </p>
                                                 </div>
 
                                                 <div className="flex items-center gap-2 text-[10px] text-slate-500 pt-2 border-t border-slate-800">
                                                     <Icons.Lock className="w-3 h-3" />
-                                                    <span> <script src="https://buymeacoffee.com/pulkitrai"></script> </span>
+                                                    <span>
+                                                        Support the project: <a href="https://www.buymeacoffee.com/pulkitrai" target="_blank" rel="noreferrer" className="text-cyan-400">Buy me a coffee</a>
+                                                    </span>
                                                 </div>
                                             </div>
                                         </div>
@@ -475,7 +584,6 @@
                                         </div>
                                     </div>
                                 )}
-
                             </div>
                         </div>
                     </main>
